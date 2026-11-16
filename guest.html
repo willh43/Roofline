@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roofline: Find a rooftop</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#eef1f6;--surf:#fff;--ink:#14213d;--mute:#5b6783;--line:#d8deea;--acc:#3b4fe0;--acc-ink:#fff;--ok:#16996a;--okbg:#dcf5ea;--off:#e6e9f1;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1526;--surf:#182038;--ink:#eef1fa;--mute:#9aa6c4;--line:#2b3556;--acc:#7d8cff;--acc-ink:#0f1526;--ok:#4fd6a0;--okbg:#14382e;--off:#222c49;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1526;--surf:#182038;--ink:#eef1fa;--mute:#9aa6c4;--line:#2b3556;--acc:#7d8cff;--acc-ink:#0f1526;--ok:#4fd6a0;--okbg:#14382e;--off:#222c49;color-scheme:dark}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Figtree,system-ui,sans-serif}
+h1,h2,h3,.brand{font-family:"Bricolage Grotesque",Figtree,system-ui,sans-serif;letter-spacing:-.02em;margin:0}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--line);background:var(--surf)}
+.brand{font-size:24px;font-weight:800;cursor:pointer}.brand i{font-style:normal;color:var(--acc)}.who{color:var(--mute);font-size:14px}
+.wrap{max-width:1040px;margin:0 auto;padding:28px 24px 48px}
+h1{font-size:32px;font-weight:800;margin-bottom:4px}.sub{color:var(--mute);margin:0 0 20px}
+.bar{display:grid;grid-template-columns:1.2fr 1fr .6fr 1.2fr;gap:12px;background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:22px}
+label{display:block;font-weight:600;font-size:13px;margin-bottom:4px;color:var(--mute)}
+input[type=text],input[type=email],input[type=number],input[type=date],select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit}
+input[type=range]{width:100%;accent-color:var(--acc)}
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+.card{background:var(--surf);border:1px solid var(--line);border-radius:16px;overflow:hidden;cursor:pointer;text-align:left;padding:0;color:inherit;font:inherit}
+.card:hover,.card:focus-visible{border-color:var(--acc)}
+.card .ph{aspect-ratio:4/3;background:var(--off)}.card img,.hero img{width:100%;height:100%;object-fit:cover;display:block}
+.card .bd{padding:14px 16px 16px}.card h3{font-size:19px}.card p{margin:2px 0;color:var(--mute);font-size:14px}.pr{font-weight:600;margin-top:8px}
+.empty{padding:40px;text-align:center;color:var(--mute);background:var(--surf);border:1px dashed var(--line);border-radius:16px}
+.det{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:28px;align-items:start}
+.hero{aspect-ratio:4/3;border-radius:16px;overflow:hidden}
+.panel{background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:24px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:6px 12px;border-radius:99px;background:var(--off);font-size:13px;color:var(--mute)}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 16px}
+.sl{padding:9px 0;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}
+.sl.on{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}.sl:disabled{opacity:.35;text-decoration:line-through;cursor:default}
+.btn{padding:12px 22px;border-radius:10px;border:1px solid var(--line);background:var(--surf);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--acc-ink);width:100%}
+.tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);padding-top:14px;margin:6px 0 16px;font-weight:600}
+.tot b{font-family:"Bricolage Grotesque",sans-serif;font-size:30px}
+.back{background:none;border:0;color:var(--mute);font:inherit;font-weight:600;cursor:pointer;padding:0;margin-bottom:14px}
+.f{margin-bottom:12px}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.secure{font-size:13px;color:var(--ok);background:var(--okbg);border-radius:10px;padding:10px 12px;margin:4px 0 16px}
+.done{text-align:center;max-width:480px;margin:30px auto}.ck{width:68px;height:68px;border-radius:50%;background:var(--okbg);color:var(--ok);display:grid;place-items:center;font-size:34px;margin:0 auto 14px}
+.sum{text-align:left;margin:20px 0}.sum div{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+@media(max-width:820px){.bar{grid-template-columns:1fr 1fr}.det{grid-template-columns:1fr}header{padding:14px 18px}}
+</style>
+</head>
+<body>
+<header><div class="brand" onclick="V='res';draw()">Roof<i>line</i></div><div class="who">Find a space</div></header>
+<div class="wrap" id="app"></div>
+<script>
+var LOC=["All areas","Hoboken, NJ","Jersey City, NJ","Manhattan, NY","Brooklyn, NY"];
+var L=[
+{id:0,n:"Sunset Skyline Rooftop",loc:"Hoboken, NJ",p:85,cap:30,am:["Skyline view","Seating","Heating"],bk:[18,19,20],pal:0},
+{id:1,n:"Pier Terrace",loc:"Hoboken, NJ",p:60,cap:20,am:["River view","Seating","Wi-Fi"],bk:[14,15],pal:2},
+{id:2,n:"Midtown Garden Roof",loc:"Manhattan, NY",p:140,cap:40,am:["Skyline view","Bar setup","Restroom access"],bk:[19,20,21,22],pal:1},
+{id:3,n:"Williamsburg Loft Deck",loc:"Brooklyn, NY",p:110,cap:25,am:["Skyline view","Heating","Wi-Fi"],bk:[17,18],pal:2},
+{id:4,n:"Jersey City Lookout",loc:"Jersey City, NJ",p:75,cap:25,am:["Skyline view","Seating"],bk:[12,13,21],pal:1}];
+var Q={loc:LOC[0],date:"2026-11-21",g:2,max:200},V="res",C=L[0],T={s:18,d:2},N={name:"",email:""};
+var $=function(i){return document.getElementById(i)};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function img(i){var p=[["#ff9a62","#5a3d8a","#1b1f4b"],["#ffd08a","#e0607e","#2c2a6b"],["#8ec5ff","#6a7be0","#232a6e"]][L[i].pal],b="";
+for(var k=0;k<14;k++){var h=40+((k*37+i*23)%90);b+='<rect x="'+k*30+'" y="'+(300-h)+'" width="26" height="'+h+'" fill="#0e1330" opacity=".92"/>'}
+var s='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="'+p[2]+'"/><stop offset=".6" stop-color="'+p[1]+'"/><stop offset="1" stop-color="'+p[0]+'"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/><circle cx="'+(80+i*60)+'" cy="190" r="30" fill="'+p[0]+'" opacity=".9"/>'+b+'<rect y="262" width="400" height="38" fill="#2a2f55"/></svg>';
+return "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(s)}
+function fd(d){var x=new Date(d+"T12:00:00");return x.toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}
+function hr(h){return (h<10?"0":"")+h+":00"}
+function ok(l,s,d){for(var h=s;h<s+d;h++)if(h>=24||l.bk.indexOf(h)>-1)return false;return true}
+function list(){var r=L.filter(function(l){return(Q.loc==LOC[0]||l.loc==Q.loc)&&l.p<=Q.max&&l.cap>=Q.g});
+$("list").innerHTML=r.length?r.map(function(l){return '<button class="card" onclick="pick('+l.id+')"><div class="ph"><img alt="" src="'+img(l.id)+'"></div><div class="bd"><h3>'+l.n+'</h3><p>'+l.loc+' \u00b7 up to '+l.cap+' guests</p><p>'+l.am.join(", ")+'</p><div class="pr">$'+l.p+' / hour</div></div></button>'}).join(""):'<div class="empty">No spaces match yet. Try a higher budget or a different area.</div>'}
+function pick(i){C=L[i];T.s=12;while(T.s<22&&!ok(C,T.s,1))T.s++;T.d=ok(C,T.s,2)?2:1;V="det";draw()}
+function draw(){var a=$("app"),h="";
+if(V=="res"){h='<h1>Find your rooftop</h1><p class="sub">Real-time availability and pricing, no surprises.</p><div class="bar"><div><label for="q1">Area</label><select id="q1">'+LOC.map(function(x){return '<option'+(x==Q.loc?" selected":"")+'>'+x+'</option>'}).join("")+'</select></div><div><label for="q2">Date</label><input type="date" id="q2"></div><div><label for="q3">Guests</label><input type="number" id="q3" min="1" max="100"></div><div><label for="q4">Max price: $<span id="mv"></span>/hr</label><input type="range" id="q4" min="40" max="200" step="5"></div></div><div class="list" id="list"></div>';a.innerHTML=h;
+$("q2").value=Q.date;$("q3").value=Q.g;$("q4").value=Q.max;$("mv").textContent=Q.max;
+$("q1").onchange=function(e){Q.loc=e.target.value;list()};$("q2").onchange=function(e){Q.date=e.target.value||Q.date};$("q3").oninput=function(e){Q.g=Math.max(1,+e.target.value||1);list()};$("q4").oninput=function(e){Q.max=+e.target.value;$("mv").textContent=Q.max;list()};list();return}
+if(V=="det"){var tot=C.p*T.d,sl="";for(var s=12;s<=22;s++)sl+='<button class="sl'+(s==T.s?" on":"")+'" '+(ok(C,s,1)?"":"disabled")+' onclick="T.s='+s+';if(!ok(C,T.s,T.d))T.d=1;draw()">'+hr(s)+'</button>';
+var du="";for(var d=1;d<=6;d++)du+='<button class="sl'+(d==T.d?" on":"")+'" '+(ok(C,T.s,d)?"":"disabled")+' onclick="T.d='+d+';draw()">'+d+' hr'+(d>1?"s":"")+'</button>';
+h='<button class="back" onclick="V=\'res\';draw()">\u2039 Back to results</button><div class="det"><div><div class="hero"><img alt="'+C.n+'" src="'+img(C.id)+'"></div><h1 style="margin-top:18px">'+C.n+'</h1><p class="sub">'+C.loc+' \u00b7 up to '+C.cap+' guests</p><div class="chips">'+C.am.map(function(x){return '<span class="chip">'+x+'</span>'}).join("")+'</div></div><div class="panel"><h3 style="font-size:22px">'+fd(Q.date)+'</h3><label style="margin-top:14px">Start time (struck-through times are booked)</label><div class="slots">'+sl+'</div><label>How long</label><div class="slots" style="grid-template-columns:repeat(3,1fr)">'+du+'</div><div class="tot"><span>$'+C.p+' x '+T.d+' hr'+(T.d>1?"s":"")+' ('+hr(T.s)+'\u2013'+hr(T.s+T.d)+')</span><b>$'+tot+'</b></div><button class="btn pri" onclick="V=\'pay\';draw()">Reserve this space</button></div></div>';a.innerHTML=h;return}
+if(V=="pay"){var t=C.p*T.d;h='<button class="back" onclick="V=\'det\';draw()">\u2039 Back</button><div class="det"><div class="panel"><h1 style="font-size:26px;margin-bottom:14px">Secure checkout</h1><div class="f"><label for="n">Full name</label><input type="text" id="n" placeholder="Alex Rivera"></div><div class="f"><label for="e">Email</label><input type="email" id="e" placeholder="alex@email.com"></div><div class="f"><label for="cn">Card number</label><input type="text" id="cn" placeholder="4242 4242 4242 4242" inputmode="numeric"></div><div class="row f"><div><label for="ex">Expires</label><input type="text" id="ex" placeholder="MM / YY"></div><div><label for="cv">CVC</label><input type="text" id="cv" placeholder="123"></div></div><div class="secure">Payments are processed securely by Stripe. Roofline never stores your full card number.</div><button class="btn pri" onclick="pay()">Pay $'+t+'</button></div><div class="panel"><div class="hero" style="border-radius:12px"><img alt="" src="'+img(C.id)+'"></div><h3 style="margin-top:14px">'+C.n+'</h3><p class="sub" style="margin:0">'+fd(Q.date)+'<br>'+hr(T.s)+' to '+hr(T.s+T.d)+' \u00b7 '+Q.g+' guests</p></div></div>';a.innerHTML=h;$("n").value=N.name;$("e").value=N.email;return}
+if(V=="ok"){var code="RL-"+(4821+C.id*37);h='<div class="done"><div class="ck">\u2713</div><h1>You\u2019re booked</h1><p class="sub">A confirmation is on its way to '+esc(N.email||"your email")+'.</p><div class="sum"><div><span>Space</span><b>'+C.n+'</b></div><div><span>When</span><b>'+fd(Q.date)+', '+hr(T.s)+' to '+hr(T.s+T.d)+'</b></div><div><span>Total paid</span><b>$'+C.p*T.d+'</b></div><div><span>Booking code</span><b>'+code+'</b></div></div><button class="btn" onclick="V=\'res\';draw()">Find another space</button></div>';a.innerHTML=h}}
+function pay(){N.name=$("n").value.trim();N.email=$("e").value.trim();V="ok";draw()}
+draw();
+</script>
+</body>
+</html>
